@@ -15,6 +15,12 @@ interface GameInfo{
   nbWins:number;
 }
 
+interface multiplierBuy{
+  multiplierCost:number,
+  multiplier:number,
+  score:number;
+}
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -33,8 +39,8 @@ export class AppComponent {
   isConnected = false;
   nbClicks = 0;
   // TODO: Ajouter 3 variables: Le multiplier, le multiplierCost, mais également le multiplierIntialCost pour remettre à jour multiplierCost après chaque fin de round (ou sinon on peut passer l'information dans l'appel qui vient du Hub!)
-multiplier : number =0;
-multiplierCost : number = 0;
+multiplier : number = 1;
+multiplierCost : number = 10;
 multiplierIntialCost : number = 10;
 
   constructor(public account:AccountService){
@@ -42,12 +48,15 @@ multiplierIntialCost : number = 10;
 
   Increment() {
     //TODO: Augmenter le nbClicks par la valeur du multiplicateur
-    this.nbClicks += 1;
+    this.nbClicks += this.multiplier;
     this.hubConnection!.invoke('Increment')
   }
 
   BuyMultiplier() {
     // TODO: Implémenter la méthode qui permet d'acheter un niveau de multiplier (Appel au Hub!)
+    console.log("Acheter multiplier")
+    this.hubConnection!.invoke('AcheterMultiplier')
+
   }
 
   async register(){
@@ -90,11 +99,21 @@ multiplierIntialCost : number = 10;
           this.isConnected = true;
           // TODO: Mettre à jour les variables pour le coût du multiplier et le nbWins
           this.nbWins = data.nbWins;
+
+        });
+        this.hubConnection!.on('addMultiplier', (data:multiplierBuy) => {
+          this.isConnected = true;
+          // TODO: Mettre à jour les variables pour le coût du multiplier et le nbWins
+          this.multiplierCost = data.multiplierCost
+          this.multiplier = data.multiplier
+          this.nbClicks = data.score
         });
 
         this.hubConnection!.on('EndRound', (data:RoundResult) => {
           this.nbClicks = 0;
           // TODO: Reset du multiplierCost et le multiplier
+          this.multiplierCost = this.multiplierIntialCost;
+          this.multiplier = 1;
 
           // TODO: Si le joueur a gagné, on augmente nbWins
           for (let i = 0; i < data.winners.length; i++) {

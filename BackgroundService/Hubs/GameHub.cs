@@ -47,5 +47,14 @@ namespace BackgroundService.Hubs
         }
 
         // Ajouter une méthode pour pouvoir acheter un multiplier
+        public async Task AcheterMultiplier()
+        {
+
+            _game.AcheterMultiplier(Context.UserIdentifier!);
+
+
+
+
+        }
     }
 }

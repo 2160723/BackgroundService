@@ -1,4 +1,5 @@
 ﻿using BackgroundService.Data;
+using BackgroundService.DTOs;
 using BackgroundService.Hubs;
 using BackgroundService.Models;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +13,7 @@ namespace BackgroundService.Services
     {
         public int Score { get; set; } = 0;
         // TODO: Ajouter une propriété pour le multiplier
+        public int multiplier { get; set; } = 1;
     }
 
     public class Game : Microsoft.Extensions.Hosting.BackgroundService
@@ -45,13 +47,41 @@ namespace BackgroundService.Services
         {
             UserData userData = _data[userId];
             // TODO: Ajouter la valeur du muliplier au lieu d'ajouter 1
-            userData.Score += 1;
+            userData.Score += 1 * userData.multiplier;
         }
 
         // TODO: Ajouter une méthode pour acheter un multiplier. Le coût est le prix de base * le multiplier actuel
         // Les prix sont donc de 10, 20, 40, 80, 160 (Si le prix de base est 10)
         // Réduire le score du coût du multiplier
         // Doubler le multiplier du joueur
+
+        public async Task AcheterMultiplier(string userId)
+        {
+
+
+            UserData userdata = _data[userId];
+            int multiplierCost = MULTIPLIER_BASE_PRICE * (userdata.multiplier);
+            if (userdata.Score >= multiplierCost)
+            {
+                userdata.multiplier = userdata.multiplier * 2;
+                userdata.Score -= multiplierCost;
+                multiplierCost = multiplierCost * 2;
+
+  
+
+                await _gameHub.Clients.User(userId).SendAsync("addMultiplier", new multiplierBuyDTO()
+                {
+                    // TODO: Remplir l'information avec les 2 nouveaux features (nbWins et multiplierCost)
+                    score = userdata.Score,
+                    multiplier = userdata.multiplier,
+                    multiplierCost = multiplierCost
+
+                });
+            }
+
+
+
+        }
 
         public async Task EndRound(CancellationToken stoppingToken)
         {
@@ -76,6 +106,7 @@ namespace BackgroundService.Services
             foreach (var key in _data.Keys)
             {
                 // TODO: On remet le multiplier à 1!
+                _data[key].multiplier = 1;
                 _data[key].Score = 0;
             }
 
