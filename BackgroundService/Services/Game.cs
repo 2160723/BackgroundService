@@ -97,8 +97,13 @@ namespace BackgroundService.Services
                     scope.ServiceProvider.GetRequiredService<BackgroundServiceContext>();
 
                 // TODO: Mettre à jour et sauvegarder le nbWinds des joueurs
-
                 List<IdentityUser> users = await backgroundServiceContext.Users.Where(u => winners.Contains(u.Id)).ToListAsync();
+                foreach(IdentityUser user in users)
+                {
+                    Player player = await backgroundServiceContext.Player.Where(x => x.UserId == user.Id).FirstOrDefaultAsync();
+                    player.NbWins++;
+                    await backgroundServiceContext.SaveChangesAsync();
+                }
 
                 RoundResult roundResult = new RoundResult()
                 {

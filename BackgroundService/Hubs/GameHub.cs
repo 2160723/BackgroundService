@@ -29,7 +29,10 @@ namespace BackgroundService.Hubs
             await Clients.Caller.SendAsync("GameInfo", new GameInfoDTO()
             {
                 // TODO: Remplir l'information avec les 2 nouveaux features (nbWins et multiplierCost)
-            });
+                nbWins = player.NbWins,
+                coutMultiplier = 10
+
+            }) ;
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
